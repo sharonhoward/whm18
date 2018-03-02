@@ -1,0 +1,209 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+```{r}
+# packages
+library(dplyr)
+library(ggplot2)
+library(scales)
+
+```
+
+
+```{r}
+# westminster coroners inquests data (2894 inquests)
+
+wacwic <- read.table("data/wa_coroners_inquests_v1-1.tsv",
+                   header=TRUE,
+                   sep="\t")
+
+# add a simplified verdicts column
+# why doesn't ifelse(grepl("suicide",verdict), "suicide", verdict) work properly ??
+wacwic <- wacwic %>% 
+  mutate(verdict2 = ifelse(grepl('suicide',verdict), "suicide", 
+                      ifelse(verdict == 'accidental', 'accidental',
+                        ifelse(verdict == 'homicide', 'homicide',
+                          ifelse(verdict == 'natural causes', 'natural causes',
+                            ifelse(verdict =='undetermined', 'undetermined', '-')
+                              )
+                             )
+                           )
+                         )
+                       )
+
+# this ought to work but gives verdict as a number instead of the text value!!!
+wacwic <- wacwic %>%
+  mutate(verdict_grr =  ifelse(grepl("suicide",verdict), "suicide", verdict) )
+
+
+# add doc year from doc date (a different way of adding a column)
+# not sure if this actually needs as.numeric() to make it an integer...
+wacwic$doc_year <- as.numeric(substring(wacwic$doc_date,0,4))
+
+
+# create a new table filtering out unknown/mixed gender and a random inquest date before 1760 (2891). A very small handful of these may refer to more than one person (of the same gender) - I need to look this up.
+wacwic_gender_1760 <-
+  wacwic %>%
+    filter((gender == "m" | gender=="f") & doc_year > 1759)
+
+# children only (361)
+wacwic_gender_1760_children <-
+  wacwic_gender_1760 %>%
+    filter(grepl("child",deceased_additional_info))
+
+```
+
+ 
+Westminster coroners' inquests, 1760-99
+===============
+
+
+Annual patterns of inquests on male and female deceased
+---------------
+
+
+```{r}
+# simple aggregation using group_by and summarise, gender x year 
+wacwic_gender_year <-
+  wacwic_gender_1760 %>%
+    select(doc_year, gender) %>%
+    group_by(doc_year, gender) %>%
+    summarise(n_year = n())
+
+#same for children
+wacwic_gender_year_children <-
+  wacwic_gender_1760_children %>%
+    select(doc_year, gender) %>%
+    group_by(doc_year, gender) %>%
+    summarise(n_year = n())
+```
+
+
+```{r}
+
+# inquests per year by gender, as a step chart (this *doesn't* stack)
+ggplot(wacwic_gender_year, 
+      aes(x=doc_year, y=n_year, group=gender, colour=gender) ) + 
+      geom_step()  +
+      labs(y="number of inquests", x="year of inquest", title="Annual counts of male and female deceased")  +
+      scale_colour_discrete(labels=c("f"="female", "m"="male"))
+
+```
+
+
+
+
+```{r}
+
+# inquests per year by gender, as a stacked area chart
+
+ggplot(wacwic_gender_year, aes(doc_year, n_year, group=gender, colour=gender, fill=gender)) +
+  geom_area() +
+      labs(y="number of inquests", x="year of inquest", title="Annual inquest totals with gender breakdown") +
+      scale_fill_discrete(labels=c("f"="female", "m"="male")) +
+      scale_colour_discrete(guide="none") #why???!!!
+ 
+```
+
+```{r}
+# turn it into a proportional stacked bar chart (by adding position=fill)
+
+ggplot(wacwic_gender_year, aes(x=doc_year, y=n_year, fill=gender) ) + 
+    geom_bar(stat="identity", position="fill") +
+    scale_y_continuous(labels = percent_format()) +
+    labs(y="% of inquests", x="year of inquest", title="Gender ratio of inquests") +
+    scale_fill_discrete(labels=c("f"="female", "m"="male"))
+```
+
+```{r}
+# proportional stacked bar chart for children only
+
+ggplot(wacwic_gender_year_children, aes(x=doc_year, y=n_year, fill=gender) ) + 
+    geom_bar(stat="identity", position="fill") +
+    scale_y_continuous(labels = percent_format()) +
+    labs(y="% of inquests", x="year of inquest", title="Gender ratio for children only") +
+    scale_fill_discrete(labels=c("f"="female", "m"="male"))
+```
+
+
+Inquest verdicts
+----------
+
+
+```{r}
+# simple aggregation gender x verdict (filter out an unknown verdict)
+wacwic_gender_verdict1 <-
+  wacwic_gender_1760 %>% 
+        filter(verdict2 !='-') %>%
+         select(gender, verdict2) %>% 
+         group_by(gender, verdict2) %>% 
+         summarise(n_v = n()) 
+
+#stacked proportional bar chart compares verdicts for men and women
+  ggplot(data=wacwic_gender_verdict1, aes(x=gender, y=n_v)) +  
+      geom_bar(stat='identity',position='fill', aes(fill=verdict2)) +
+      scale_y_continuous(labels = percent_format())  +
+      scale_fill_brewer(palette="Spectral") +
+      labs(fill="verdict", y="% of verdicts", title="Inquest verdicts: male and female deaths") +
+    scale_x_discrete(labels=c("f"="female", "m"="male"))
+```
+
+
+
+```{r}
+# more complex aggregation with calculation of percentages to make text labels which facilitate more precise comparisons
+
+wacwic_gender_verdict2 <-
+  wacwic_gender_1760 %>% 
+        filter(verdict2 !='-') %>%
+        select(gender, verdict2) %>% 
+         group_by(gender, verdict2) %>% 
+         dplyr::mutate(n_gv = n()) %>%
+         group_by(gender) %>%         
+         dplyr::mutate(n_g = n()) %>% 
+         group_by(gender, verdict2, n_gv, n_g) %>%
+         dplyr::summarise() %>%         
+         dplyr::mutate(pc_gv = n_gv/n_g*100)
+
+ggplot(wacwic_gender_verdict2, 
+    aes(x=gender, y=pc_gv, fill=verdict2, label=round(pc_gv,1) )) + 
+    geom_bar(stat='identity') +   
+    geom_text(position=position_stack(vjust=0.5), colour = "white", size=3) +  
+    labs(y="% of verdicts", fill="verdict", title="Inquest verdicts: male and female deaths")  +
+    scale_fill_brewer(palette="Spectral") +
+    scale_x_discrete(labels=c("f"="female", "m"="male"))
+
+
+```
+
+```{r}
+#flip it around to compare m/f proportions for each type of verdict
+
+wacwic_gender_verdict3 <-
+  wacwic_gender_1760 %>% 
+        filter(verdict2 !='-') %>%
+        select(gender, verdict2) %>% 
+         group_by(gender, verdict2) %>% 
+         dplyr::mutate(n_gv = n()) %>%
+         group_by(verdict2) %>%         
+         dplyr::mutate(n_v = n()) %>% 
+         group_by(gender, verdict2, n_gv, n_v) %>%
+         dplyr::summarise() %>%         
+         dplyr::mutate(pc_gv = n_gv/n_v*100)
+
+ggplot(wacwic_gender_verdict3, 
+    aes(x=verdict2, y=pc_gv, fill=gender, label=round(pc_gv, 1) )) + 
+    geom_bar(stat='identity') +   
+    geom_text(position=position_stack(vjust=0.5), colour = "white", size=3) +  
+    labs(y="% of verdicts", fill="gender", x="verdict", title="Inquest verdicts: gender ratios") +
+    scale_fill_discrete(labels=c("f"="female", "m"="male"))
+
+
+```
+
