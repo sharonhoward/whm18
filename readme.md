@@ -17,11 +17,11 @@ Westminster Coroner's Inquests 1760-99
 
 I've started with this because it's data I recently created and this is my first chance to do something with it!
 
-[Data]()
+[Data](data/wa_coroners_inquests_v1-1.tsv)
 
-The data is fully described [here](https://github.com/sharonhoward/londonlives/tree/master/coroners_inquests)
+NB that the data is fully described [here](https://github.com/sharonhoward/londonlives/tree/master/coroners_inquests)
 
-Blog post
+[Blog post](https://earlymodernnotes.wordpress.com/2018/03/02/whm18-westminste…inquests-1760-99/) 
 
 [R Notebook](whm2018_westminster_coroners_inquests.Rmd) 
 
