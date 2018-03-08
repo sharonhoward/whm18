@@ -1,0 +1,203 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+
+
+```{r}
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+```
+
+
+```{r}
+
+wbspse <- read.csv("data/wbspse_alldates_20180306.csv")
+
+
+# convert wbig to long format, 1960-2009 only
+wbspse_long_all_ind <- wbspse %>%
+    select(IndicatorCode, IndicatorName, CountryName, CountryCode, X1960, X1961, X1962, X1963, X1964, X1965, X1966, X1967, X1968, X1969, X1970, X1971, X1972, X1973, X1974, X1975, X1976, X1977, X1978, X1979, X1980, X1981, X1982, X1983, X1984, X1985, X1986, X1987, X1988, X1989, X1990, X1991, X1992, X1993, X1994, X1995, X1996, X1997, X1998, X1999, X2000, X2001, X2002, X2003, X2004, X2005, X2006, X2007, X2008, X2009) %>%
+    gather(year1, val, X1960, X1961, X1962, X1963, X1964, X1965, X1966, X1967, X1968, X1969, X1970, X1971, X1972, X1973, X1974, X1975, X1976, X1977, X1978, X1979, X1980, X1981, X1982, X1983, X1984, X1985, X1986, X1987, X1988, X1989, X1990, X1991, X1992, X1993, X1994, X1995, X1996, X1997, X1998, X1999, X2000, X2001, X2002, X2003, X2004, X2005, X2006, X2007, X2008, X2009) %>%
+    mutate(year = as.integer(substr(year1, 2,5)), 
+           decade = paste0(substr(year1, 2,4), '0s') )
+
+
+wbsp1960 <- read.csv("data/wbsp_1960_20180306.csv",
+                   header=TRUE)
+
+# convert wbsp1960 to long format, 1960-2009 only
+wbsp1960_long_all_ind <- wbsp1960 %>%
+    select(IndicatorCode, IndicatorName, CountryName, CountryCode, X1960, X1961, X1962, X1963, X1964, X1965, X1966, X1967, X1968, X1969, X1970, X1971, X1972, X1973, X1974, X1975, X1976, X1977, X1978, X1979, X1980, X1981, X1982, X1983, X1984, X1985, X1986, X1987, X1988, X1989, X1990, X1991, X1992, X1993, X1994, X1995, X1996, X1997, X1998, X1999, X2000, X2001, X2002, X2003, X2004, X2005, X2006, X2007, X2008, X2009) %>%
+    gather(year1, val, X1960, X1961, X1962, X1963, X1964, X1965, X1966, X1967, X1968, X1969, X1970, X1971, X1972, X1973, X1974, X1975, X1976, X1977, X1978, X1979, X1980, X1981, X1982, X1983, X1984, X1985, X1986, X1987, X1988, X1989, X1990, X1991, X1992, X1993, X1994, X1995, X1996, X1997, X1998, X1999, X2000, X2001, X2002, X2003, X2004, X2005, X2006, X2007, X2008, X2009) %>%
+    mutate(year = as.integer(substr(year1, 2,5)), 
+           decade = paste0(substr(year1, 2,4), '0s') )
+
+
+
+```
+
+```{r}
+
+palette <- c("#D55E00","#0072B2", "#56B4E9", "#999999", "#009E73", "#F0E442", "black")
+
+filter_fertility <- "SP.DYN.TFRT.IN"
+filter_fertility_teen <- "SP.ADO.TFRT"
+
+filter_life <- "SP.DYN.LE00.(FE|MA).IN"
+
+filter_primary <- "SE.PRM.ENRL.FE.ZS"
+filter_secondary <- "SE.SEC.ENRL.FE.ZS"
+filter_primary_teachers <- "SE.PRM.TCHR.FE.ZS"
+
+filter_secondary_teachers <- "SE.SEC.TCHR.FE.ZS"
+filter_literacy <- "SE.ADT.LITR.(FE|MA).ZS"
+filter_literacy_youth <- "SE.ADT.1524.LT.FE.ZS|SE.ADT.1524.LT.MA.ZS"
+
+filter_income <- "HIC|LIC|LMC|MIC|UMC|WLD" 
+
+filter_six <- "TUN|PAK|NGA|JAM|NOR|FJI"
+
+filter_sixw <- "TUN|PAK|NGA|JAM|NOR|FJI|WLD"
+
+```
+
+
+
+```{r}
+ggplot(wbsp1960_long_all_ind %>%
+  filter(grepl(filter_income, CountryCode), grepl(filter_life, IndicatorCode) ),
+  aes(year, val, colour=IndicatorCode)
+  ) + 
+  geom_line() +
+  facet_wrap(~CountryName) +
+  scale_colour_manual(values=palette, labels=c("SP.DYN.LE00.FE.IN"="female", "SP.DYN.LE00.MA.IN"="male"), name="Gender") +
+  labs(title="Life expectancy by country income groups, 1960-2009")
+```
+
+
+
+```{r}
+
+ggplot(wbsp1960_long_all_ind %>%
+  filter(grepl(filter_six, CountryCode), grepl(filter_life, IndicatorCode) ),
+  aes(year, val, colour=IndicatorCode)
+  ) + 
+  geom_line() +
+  facet_wrap(~CountryName) +
+  scale_colour_manual(values=palette, labels=c("SP.DYN.LE00.FE.IN"="female", "SP.DYN.LE00.MA.IN"="male"), name="Gender") +
+  labs(title="Life expectancy in six countries, 1960-2009")
+```
+
+
+```{r}
+ggplot(wbsp1960_long_all_ind %>%
+      filter(grepl(filter_six, CountryCode), grepl(filter_life, IndicatorCode))
+       , aes(year, val)) +
+  geom_point(aes(colour = CountryName, shape=IndicatorCode) )  +
+  labs(y="years", title="Life expectancy in six countries") +
+  scale_colour_manual(values=palette, name="Countries" ) +
+  scale_shape_discrete(labels=c("SP.DYN.LE00.FE.IN"="female", "SP.DYN.LE00.MA.IN"="male"), name="Gender",solid = FALSE) 
+```
+
+
+Fertility rate, total (births per woman)
+
+```{r}
+ggplot(wbsp1960_long_all_ind %>%
+      filter(grepl(filter_income, CountryCode), grepl(filter_fertility, IndicatorCode))
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  scale_colour_manual(values=palette, name="Countries", breaks=c("High income", "Upper middle income", "Middle income", "Lower middle income", "Low & middle income", "Low income", "World")) +
+  labs(y="births per woman", title="Fertility rates by country income groups")
+```
+
+Adolescent fertility rate (births per 1,000 women ages 15-19)
+
+```{r}
+ggplot(wbsp1960_long_all_ind %>%
+      filter(grepl(filter_six, CountryCode), grepl(filter_fertility, IndicatorCode)), aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="births per woman", title="Fertility rates in six countries") +
+  scale_colour_manual(values=palette, name="Countries" )
+```
+
+
+Primary education, pupils (% female)
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_income, CountryCode), grepl(filter_primary, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of pupils", title="Primary education of girls by country income groups") +
+  scale_colour_manual(values=palette, name="Countries", breaks=c("High income", "Upper middle income", "Middle income", "Lower middle income", "Low & middle income", "Low income", "World") )
+```
+
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_sixw, CountryCode), grepl(filter_primary, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of pupils", title="Primary education of girls in six countries") +
+  scale_colour_manual(values=palette, name="Countries" )
+
+```
+
+
+
+
+Secondary education, pupils (% female)
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_income, CountryCode), grepl(filter_secondary, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of pupils", title="Secondary education of girls by country income groups") +
+  scale_colour_manual(values=palette, name="Countries", breaks=c("High income", "Upper middle income", "Middle income", "Lower middle income", "Low & middle income", "Low income", "World") )
+```
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_sixw, CountryCode), grepl(filter_secondary, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of pupils", title="Secondary education of girls in six countries") +
+  scale_colour_manual(values=palette, name="Countries")
+```
+
+
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_income, CountryCode), grepl(filter_primary_teachers, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of teachers", title="Female primary school teachers") +
+  scale_colour_manual(values=palette, name="Countries", breaks=c("High income", "Upper middle income", "Middle income", "Lower middle income", "Low & middle income", "Low income", "World") )
+```
+
+```{r}
+ggplot(wbspse_long_all_ind %>%
+      filter(grepl(filter_sixw, CountryCode), grepl(filter_primary_teachers, IndicatorCode), year>1969)
+       , aes(year, val, colour = CountryName)) +
+  geom_line() +
+  labs(y="% of teachers", title="Female primary school teachers in six countries") +
+  scale_colour_manual(values=palette, name="Countries" )
+```
+
+
+
+
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file). 
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
+
