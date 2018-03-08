@@ -36,12 +36,13 @@ Data:
 
 [UKDS guide to the data](https://www.ukdataservice.ac.uk/use-data/guides/dataset/development-indicators)
 
-[Blog post]()
+[Blog post](https://earlymodernnotes.wordpress.com/2018/03/08/international-womens-day-2018-women-in-the-world-bank-data/)
 
 [R Notebook](worldbank_women.Rmd)
 
 
 ----
 
+Unless otherwise stated, all data is shared under a Creative Commons Attribution-ShareAlike 4.0 International Licence
 
 [![License: CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/80x15.png)](http://creativecommons.org/licenses/by-sa/4.0/)
