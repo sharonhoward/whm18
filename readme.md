@@ -26,6 +26,7 @@ NB that the data is fully described [here](https://github.com/sharonhoward/londo
 [R Notebook](whm2018_westminster_coroners_inquests.Rmd) 
 
 
+<<<<<<< HEAD
 World Bank World Development Indicators
 -------------------------
 
@@ -44,5 +45,11 @@ Data:
 ----
 
 Unless otherwise stated, all data/code is shared under a Creative Commons Attribution-ShareAlike 4.0 International Licence
+=======
+
+----
+
+Unless otherwise stated, all data is shared under a Creative Commons Attribution-ShareAlike 4.0 International Licence
+>>>>>>> origin/master
 
 [![License: CC BY-SA 4.0](https://licensebuttons.net/l/by-sa/4.0/80x15.png)](http://creativecommons.org/licenses/by-sa/4.0/)
