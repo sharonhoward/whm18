@@ -44,13 +44,11 @@ Data:
 Women's Auxiliary Army Corps
 ----------------------
 
-[Source for data](http://discovery.nationalarchives.gov.uk/details/r/C15099)
+[Source of data](http://discovery.nationalarchives.gov.uk/details/r/C15099) and [TNA search query used to obtain raw data](http://discovery.nationalarchives.gov.uk/results/r?_cr=wo398&_dss=range&_l=6%7C7&_ro=any&_hb=tna&_st=adv)
 
 [Cleaned data used for analysis](data/tna_wo398_20180303.tsv)
 
-[TNA search query used to obtain raw data](http://discovery.nationalarchives.gov.uk/results/r?_cr=wo398&_dss=range&_l=6%7C7&_ro=any&_hb=tna&_st=adv)
-
-Blog post
+[Blog post](https://earlymodernnotes.wordpress.com/2018/03/12/whm18-womens-army-auxiliary-corps/)
 
 [R Notebook](waac.Rmd)
 
