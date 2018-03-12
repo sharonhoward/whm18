@@ -1,0 +1,112 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+
+Women's (later Queen Mary's) Army Auxiliary Corps: Service Records
+---------
+
+Source: http://discovery.nationalarchives.gov.uk/details/r/C15099
+
+
+```{r}
+# packages
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(knitr)
+
+```
+
+```{r}
+
+#cleaned up version of the data downloaded from TNA
+wo398 <- read.table("data/tna_wo398_20180303.tsv",
+                   header=TRUE,
+                   sep="\t")
+
+# age in 1918
+wo398 <-
+  wo398 %>% mutate(calc_age = 1918 - year_of_birth)
+
+wo398 <-
+  wo398 %>% mutate(marital = ifelse(maiden_name !="", "married", "single"))
+
+wo398 <-
+  wo398 %>% mutate(age_group = ifelse(calc_age < 26, "25", "26") )
+
+wo398_yob <-
+  wo398 %>%
+    filter(year_of_birth > 1850 & year_of_birth < 1910) %>%
+    select(year_of_birth) %>%
+    group_by(year_of_birth) %>%
+    summarise(n_yob = n())
+
+wo398_age_1918 <-
+  wo398 %>%
+    filter(year_of_birth > 1850 & year_of_birth < 1910) %>%
+    select(calc_age) %>%
+    group_by(calc_age) %>%
+    summarise(n_age = n(), pc_age = round(n()*100/7004,1) )
+
+wo398_ms <-
+  wo398 %>%
+  select(marital) %>%
+  group_by(marital) %>%
+  summarise(n_ms = n(), pc_ms = round(n()*100/7004,1) )
+
+wo398_age_ms <-
+  wo398 %>%
+    filter(year_of_birth > 1850 & year_of_birth < 1910) %>%
+    select(age_group, marital) %>%
+  group_by(age_group, marital) %>%
+  summarise(n_age_ms = n())
+```
+
+
+```{r}
+
+ggplot(wo398_yob, aes(x=year_of_birth, y=n_yob)) +
+  geom_bar(stat="identity") +
+    scale_x_continuous(breaks = c(1840, 1850, 1860, 1870, 1880, 1890, 1900, 1910)) +
+    labs(y="number of women", title="Year of birth of WAAC recruits")
+```
+
+```{r}
+
+ggplot(wo398_age_1918, aes(x=calc_age, y=n_age)) +
+  geom_bar(stat="identity") +
+    scale_x_continuous(breaks = c(10, 15, 20, 25, 30, 35, 40, 50,60)) +
+    labs(y="number of women", x="age in 1918", title="Age of WAAC recruits in 1918")
+```
+
+```{r}
+kable(wo398_age_1918)
+```
+
+
+Unmarried/married
+
+```{r}
+kable(wo398_ms)
+```
+
+```{r}
+#stacked proportional bar chart compares marital status of women in two age groups, 25 and under vs 26 and over
+  ggplot(data=wo398_age_ms, aes(x=age_group, y=n_age_ms)) +  
+      geom_bar(stat='identity',position='fill', aes(fill=marital)) +
+      scale_y_continuous(labels = percent_format())  +
+      #scale_fill_brewer(palette="Spectral") #+
+      labs(y="% of women",x="age group", title="Marital status of WAAC recruits, by age group") +
+    scale_x_discrete(labels=c("25"="25 and under", "26"="26 and over"))
+```
+
+
+```{r}
+kable(wo398_age_ms)
+```
+
+
+...

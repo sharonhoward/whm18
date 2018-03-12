@@ -31,7 +31,7 @@ World Bank World Development Indicators
 
 Data:
 
-* [dataset 1: population indicators from 1960](data/wbsp_1960_20180306.csv)
+* [dataset 1: population indicators from 1960](data/wbsp_1960_20180306.csv) (ie, includes only countries that have data from 1960 onwards)
 * [dataset 2: population and education indicators, all dates](data/wbspse_alldates_20180306.csv)
 
 [UKDS guide to the data](https://www.ukdataservice.ac.uk/use-data/guides/dataset/development-indicators)
@@ -40,6 +40,19 @@ Data:
 
 [R Notebook](worldbank_women.Rmd)
 
+
+Women's Auxiliary Army Corps
+----------------------
+
+[Source for data](http://discovery.nationalarchives.gov.uk/details/r/C15099)
+
+[Cleaned data used for analysis](data/tna_wo398_20180303.tsv)
+
+[TNA search query used to obtain raw data](http://discovery.nationalarchives.gov.uk/results/r?_cr=wo398&_dss=range&_l=6%7C7&_ro=any&_hb=tna&_st=adv)
+
+Blog post
+
+[R Notebook](waac.Rmd)
 
 ----
 
