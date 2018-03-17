@@ -1,0 +1,282 @@
+---
+title: "Women's Heights Notebook"
+output: html_notebook
+---
+
+
+Heights and Ages of Women Prisoners, 1790-1925
+========================
+
+The datasets have been cleaned up to some extent. These are subsets of the original [Digital Panopticon](https://www.digitalpanopticon.org) datasets (they are more fully described on the website), to include women only, and records which contained a year of birth, or ages and dates which could be used to calculate these, in addition to height.
+
+RHC gives year of birth. HCR, CIN and PLF give ages, and the year of conviction was used to calculate birth years, on the assumption that measurements were taken around the time of conviction (give or take a few months). 
+
+It cannot quite be assumed that the datasets contain only unique individuals, although this is not an equal issue across the datasets. Record linkage to identify repeat offenders has not been attempted; this may be an issue with RHC in particular and HCR to a lesser extent. It should not be a concern with PLF and CIN. 
+
+In HCR repeated recording of the same offender/offence could occur, because HCR was a monthly record of individuals awaiting trial and so anyone held for more than a month could be recorded multiple times. I have removed repeat entries as far as possible but some may still be present.  
+
+
+```{r}
+# packages
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+
+```
+
+
+```{r}
+#data
+
+
+#home office criminal registers 1790-1801 - defendants awaiting trial
+# 1226 rows, 1061 over 19 (a few women will appear more than once)
+
+hcr <- read.csv("data/hcr_heights_20180316.csv")
+
+hcr <-
+  hcr %>% mutate(decade = paste0(substr(h_year, 1,3), "0s"), decade_birth = paste0(substr(year_birth, 1,3), "0s"), dataset="hcr" )
+
+hcra <- hcr %>% filter(age > 19)
+
+# DO convict indents 1820-1853 - transported convicts
+# 17183 rows total, 14181 over 19 
+#unlikely to be more than a very small handful of repeat appearances as it was very rare to be transported more than once!
+cin <- read.csv("data/cin_heights_20180314.csv")
+
+cin <- 
+  cin %>% mutate(decade = paste0(substr(h_year, 1,3),"0s" ), decade_birth = paste0(substr(year_birth, 1,3), "0s"), dataset = "cin" )
+
+cina <- cin %>% filter(age > 19)
+
+#prison licences 1853-1884
+# 571 rows, 535 over 19
+# repeat offenders should not be an issue as their files had already been amalgamated. If there was more than one height measurement for an individual only the first has been used.
+
+plf <- read.csv("data/plf_heights_20180314.csv")
+
+plf <-
+  plf %>% mutate(decade = paste0(substr(h_year, 1,3),"0s" ), decade_birth = paste0(substr(year_birth, 1,3), "0s"), dataset="plf"  )
+
+#for union, so columns same as other DSs
+plf2 <- plf %>% select(id, h_year,age,year_birth,height,decade,decade_birth, dataset)
+
+plf2a <- plf2 %>% filter(age > 19)
+
+#register of habitual criminals 1881-1925
+# 12599, 12118 over 19
+# likely to be some repeat offenders
+
+rhc <- read.csv("data/rhc_heights_20180316.csv")
+
+rhc <-
+  rhc %>% mutate(decade = paste0(substr(h_year, 1,3),"0s" ), decade_birth = paste0(substr(year_birth, 1,3), "0s"), dataset="rhc" )
+
+rhca <- rhc %>% filter(age > 19)
+
+
+#hmmmm, should look up if there's a better way to union >2 datasets...
+hcr_cin <- union(hcra,cina)
+plf_rhc <- union(plf2a,rhca)
+hcr_cin_plf_rhc <- union(hcr_cin,plf_rhc)
+
+cin_rhc <- union(cina, rhca)
+
+```
+
+
+
+CIN adults - boxplot of heights by decade of birth
+
+```{r}
+ggplot(cina, aes(decade_birth, height)) +
+  geom_boxplot(varwidth = TRUE, fill="#D55E00", alpha=0.5, outlier.size = 0.7, outlier.alpha = 1) +
+  scale_y_continuous(breaks=c(48,50,52,54,56,58,60,62,64,66,68,70,72)) +
+  labs(y="height (inches)", x="birth decade", title="Adult heights of women in CIN")
+
+ggsave(
+  "heights_cin_boxplot.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+CIN adults height distribution
+
+```{r}
+
+ggplot(cina, aes(height)) +
+  geom_histogram(binwidth=1)
+
+```
+
+
+
+
+RHC adults boxplot - heights by decade of birth
+
+```{r}
+ggplot(rhca, aes(decade_birth, height)) +
+  geom_boxplot(varwidth = TRUE, fill="#D55E00", alpha=0.5, outlier.size = 0.7, outlier.alpha = 1) +
+  scale_y_continuous(breaks=c(48,50,52,54,56,58,60,62,64,66,68,70,72)) +
+  labs(y="height (inches)", x="birth decade", title="Adult heights of women in RHC")
+
+ggsave(
+  "heights_rhc_boxplot.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+RHC adults height distribution
+
+```{r}
+ggplot(rhca, aes(height)) +
+  geom_histogram(binwidth = 1) +
+  scale_x_continuous(breaks=c(48,50,52,54,56,58,60,62,64,66,68,70,72))
+```
+
+
+
+PLF adults - boxplot of heights by decade of birth
+
+```{r}
+ggplot(plf2a, aes(decade_birth, height)) +
+  geom_boxplot(varwidth = TRUE) +
+  scale_y_continuous(breaks=c(48,50,52,54,56,58,60,62,64,66,68)) 
+```
+
+PLF adults height distribution
+
+```{r}
+ggplot(plf2a, aes(height)) +
+  geom_histogram(binwidth=1) +
+  scale_x_continuous(breaks=c(48,50,52,54,56,58,60,62,64,66,68))
+```
+
+
+Compare box plots for all four datasets (adults)
+
+```{r}
+ggplot(hcr_cin_plf_rhc, aes(dataset, height)) +
+  geom_boxplot(varwidth = TRUE, fill="#D55E00", alpha=0.5, outlier.size = 0.7, outlier.alpha = 1) +
+  labs(y="height (inches)", title="Adult heights of women in four datasets") +
+  scale_x_discrete(limits=c("hcr","cin","plf", "rhc")) +
+  scale_y_continuous(breaks=c(40,44,48,52,56,60,64,68,72,76))
+
+
+ggsave(
+  "heights_four_boxplot.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+Same but with violin plot overlaid for fun
+
+```{r}
+ggplot(hcr_cin_plf_rhc, aes(dataset, height)) +
+  geom_boxplot(varwidth = TRUE, fill="#D55E00", alpha=0.5, outlier.size = 0.7, outlier.alpha = 1) +
+  geom_violin(alpha=0.2) +
+  labs(y="height (inches)", title="Women's adult heights in four datasets, 1790-1925") +
+  scale_x_discrete(limits=c("hcr","cin","plf", "rhc"))+
+  scale_y_continuous(breaks=c(40,44,48,52,56,60,64,68,72,76))
+```
+
+
+Put all the datasets together
+
+
+```{r}
+ggplot(hcr_cin_plf_rhc %>% filter(year_birth > 1749, year_birth < 1900, height > 40, height < 80)
+       , aes(decade_birth, height)) +
+  geom_boxplot(varwidth = TRUE, fill="#D55E00", alpha=0.5, outlier.size = 0.5, outlier.alpha = 1) +
+  labs(y="height (inches)", x="birth decade", title="Women's adult heights by birth decade, 1750-1899") +
+  scale_y_continuous(breaks=c(40,42,44,46,48,50,52,54,56,58,60,62,64,66,68,70,72,74,76)) +
+  geom_hline(aes(yintercept=61), colour="#990000", linetype=2)
+
+
+ggsave(
+  "heights_17501899_boxplot.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+
+```{r}
+ggplot(cin_rhc, aes(height)) +
+  geom_histogram(binwidth=1) +
+  facet_grid(~dataset) +
+  scale_x_continuous(breaks=c(48,52,56,60,64,68,72)) +
+  labs(y="", title="Women's adult heights in CIN and RHC")
+
+
+ggsave(
+  "heights_cinrhc_histogram.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+Trouble with HCR?
+
+HCR adults - box plot 
+
+```{r}
+ggplot(hcra, aes(dataset,height)) +
+  geom_boxplot()  +
+  scale_y_continuous(breaks=c(36,40,44,48,52,56,60,64,68,72,76,80,84)) +
+  labs(title="HCR")
+```
+
+HCR adults boxplot - heights by year of conviction
+  
+```{r}
+ggplot(hcra, aes(factor(h_year), height)) +
+  geom_boxplot(varwidth = TRUE)  +
+  scale_y_continuous(breaks=c(36,40,44,48,52,56,60,64,68,72,76,80,84)) +
+  labs(x="conviction year")
+```
+
+HCR adults height distribution
+
+```{r}
+ggplot(hcra, aes(height)) +
+  geom_histogram(binwidth=1) +
+  labs(y="", title="Adult heights of women in HCR")+
+  scale_x_continuous(breaks=c(40,44,48,52,56,60,64,68,72,76))
+
+
+ggsave(
+  "heights_hcr_histogram.png",
+  width = 7.5,
+  height = 4,
+  dpi = 150
+)
+```
+
+HCR all age distribution
+
+```{r}
+ggplot(hcr, aes(age)) +
+  geom_histogram(binwidth=2) +
+  scale_x_continuous(breaks=c(10,20,30,40,50,60,70,80))
+```
+
+HCR adults box plot - heights by decade of birth
+  
+```{r}
+ggplot(hcra, aes(factor(decade_birth), height)) +
+  geom_boxplot(varwidth = TRUE) +
+  scale_y_continuous(breaks=c(36,40,44,48,52,56,60,64,68,72,76,80,84)) +
+  labs(x="decade of birth")
+```
+

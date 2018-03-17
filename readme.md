@@ -52,6 +52,23 @@ Women's Auxiliary Army Corps
 
 [R Notebook](waac.Rmd)
 
+
+Women's Heights in the Digital Panopticon
+------------
+
+[Digital Panopticon website](https://www.digitalpanopticon.org)
+
+Datasets:
+
+* [HCR](data/hcr_heights_20180316.csv) ([full version of dataset](https://figshare.com/articles/_/5688700))
+* [CIN](data/cin_heights_20180314.csv)
+* [PLF](data/plf_heights_20180314.csv)
+* [RHC](data/rhc_heights_20180316.csv) ([full version](https://figshare.com/articles/_/5697994))
+
+[Blog post]()
+
+[R Notebook](womens_heights.Rmd)
+
 ----
 
 Unless otherwise stated, all data is shared under a Creative Commons Attribution-ShareAlike 4.0 International Licence
