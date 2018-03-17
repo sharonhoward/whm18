@@ -65,7 +65,7 @@ Datasets:
 * [PLF](data/plf_heights_20180314.csv)
 * [RHC](data/rhc_heights_20180316.csv) ([full version](https://figshare.com/articles/_/5697994))
 
-[Blog post]()
+[Blog post](https://earlymodernnotes.wordpress.com/2018/03/17/whm18-womens-heights-in-the-digital-panopticon/)
 
 [R Notebook](womens_heights.Rmd)
 
