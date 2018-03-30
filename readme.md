@@ -2,7 +2,7 @@
 
 For Women's History Month 2018 I plan to produce some visualisations of women's/gender history datasets. I'll primarily be using R, although I'll probably experiment with other tools along the way. 
 
-I'll blog about these experiments at [Early Modern Notes](https://earlymodernnotes.wordpress.com) and I'll post R code and underlying data here as I go along. The datavizes will be exploratory and won't necessarily be very sophisticated or original, but I'll try to highlight different kinds of graph and what they can be used for.
+I'll blog about these experiments at [Early Modern Notes](https://earlymodernnotes.wordpress.com) and I'll post R code and underlying data here as I go along. The datavizes will be exploratory and won't necessarily be very sophisticated or original (or correct...), but I'll try to highlight different kinds of graph and what they can be used for.
 
 (All data will be in the /data/ folder and this folder structure will be assumed in the code.)
 
@@ -70,6 +70,19 @@ Datasets:
 [R Notebook](womens_heights.Rmd)
 
 ----
+
+Middlesex Vagrants
+--------------
+
+[Middlesex Vagrants dataset and documentation](https://zenodo.org/record/31026#.Wr5ZHf8ZKHq) (CC BY)
+
+See also [Data article](https://openhumanitiesdata.metajnl.com/articles/10.5334/johd.1/) and [Loose, idle and disorderly: vagrant removal in late eighteenth-century Middlesex](http://sro.sussex.ac.uk/51704/)
+
+[Blog post](https://earlymodernnotes.wordpress.com/2018/03/30/whm18-middlesex-vagrants-in-the-18th-century/)
+
+[R Notebook](mv.Rmd)
+
+--------
 
 Unless otherwise stated, all data is shared under a Creative Commons Attribution-ShareAlike 4.0 International Licence
 

@@ -1,0 +1,208 @@
+---
+title: "middlesex vagrants"
+author: "Sharon Howard"
+date: "3/28/2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+# packages
+library(plyr)
+library(dplyr)
+library(tidyr)
+library(ggplot2)
+library(scales)
+library(knitr)
+library(vcd)
+library(vcdExtra)
+```
+
+
+```{r}
+#Middlesex Vagrants v1.1 
+
+# read in the data
+mv <- read.csv("data/mv_20180328.csv", header=TRUE)
+
+# add a column for group type (n=1 single, n>1 group)
+mv <- mv %>%
+  mutate(group_type =  ifelse(NumberofPeopleinGroup==1, "single", "group") )
+
+# I want only lead/single vagrants who have known gender - filter out dependents and any [unknown] gender 
+
+mv_lead_gender <- mv %>%
+  filter(PersonType != "Dependent", GenderofLeadVagrant !="[unknown]")
+
+# aggregate for gender
+mv_gen <- mv_lead_gender %>% 
+         select(GenderofLeadVagrant) %>%
+         dplyr::group_by(GenderofLeadVagrant) %>%
+         dplyr::summarise(n_g = n())
+
+# aggregrate by gender and group type
+mv_gen_grp <- mv_lead_gender %>% 
+         select(GenderofLeadVagrant, group_type) %>%
+         dplyr::group_by(GenderofLeadVagrant, group_type) %>%
+         dplyr::summarise(n_g = n())
+
+# aggregate by gender and year of session
+mv_gen_year <- mv_lead_gender %>%
+         select(SessionStartYear,GenderofLeadVagrant) %>%
+         dplyr::group_by(SessionStartYear,GenderofLeadVagrant) %>%
+         dplyr::summarise(n_year = n())
+
+# aggregate by gender and settlement country
+mv_gen_ctry <-  mv_lead_gender %>%
+         dplyr::filter(grepl("England|Scotlan|Ireland|Wales", SettlementCountry)) %>%
+         select(GenderofLeadVagrant,SettlementCountry) %>%
+         dplyr::group_by(GenderofLeadVagrant,SettlementCountry) %>%
+         dplyr::summarise(n_g = n())
+
+# aggregate gender, settlement country, type
+mv_gen_ctry_grp <- mv %>%
+         filter(PersonType != "Dependent", GenderofLeadVagrant !="[unknown]", grepl("England|Scotlan|Ireland|Wales", SettlementCountry)) %>%
+         select(GenderofLeadVagrant, SettlementCountry, group_type) %>%
+         dplyr::group_by(group_type,SettlementCountry,GenderofLeadVagrant) %>%
+         dplyr::summarise(n_gs = n())
+
+# same thing with a few tweaks for the mosaic plot
+mv_lead_mos <-  mv_lead_gender %>% 
+  dplyr::filter(PersonType != "Dependent", GenderofLeadVagrant !="[unknown]", grepl("England|Scotlan|Ireland|Wales", SettlementCountry) ) %>%  
+  droplevels %>%  # this *properly* gets rid of the filtered stuff for the mosaic plot!
+  select(GenderofLeadVagrant, SettlementCountry, group_type)  %>%
+  rename(gender=GenderofLeadVagrant, country=SettlementCountry, type=group_type)
+```
+
+
+
+Compare overall numbers male/female group leader and single vagrants
+
+```{r}
+ggplot(mv_gen, aes(y=n_g, x=GenderofLeadVagrant)) +
+  geom_bar(stat = "identity", aes(fill=GenderofLeadVagrant)) +
+  labs(x="gender", y="number of vagrants", fill="", title="Gender of Middlesex Vagrants 1777-1786")
+
+#ggsave(  "mv_gender.png",  width = 6,  height = 4,  dpi = 100)
+```
+
+
+Grouped
+
+```{r}
+ggplot(mv_gen_year, aes(x=SessionStartYear, y=n_year, fill=GenderofLeadVagrant, group=GenderofLeadVagrant)) +
+  geom_bar(stat="identity", position = "dodge") +
+  scale_x_continuous(breaks = c(1777, 1778, 1779, 1780, 1781, 1782, 1783, 1784,1785,1786)) +
+  labs(fill="gender", x="year", y="number of vagrants", title="Gender of Middlesex Vagrants by year, 1777-1786")
+
+#ggsave( "mv_gender_year.png",  width = 6,  height = 4,  dpi = 100)
+```
+
+I think it's possibly less immediately obvious in the stacked chart that the m:f ratio flips after 1782 as numbers of male vagrants start to go up massively? Prefer above anyway.
+
+```{r}
+ggplot(mv_gen_year, aes(x=SessionStartYear, y=n_year, fill=GenderofLeadVagrant)) +
+  geom_bar(stat="identity") +
+  scale_x_continuous(breaks = c(1777, 1778, 1779, 1780, 1781, 1782, 1783, 1784,1785,1786)) +
+  labs(fill="gender", x="year", y="number of vagrants")
+```
+
+
+
+The majority of vagrants are lone individuals not in groups, but women are more likely to be in groups
+
+```{r}
+
+ggplot(mv_gen_grp , aes(x=GenderofLeadVagrant, y=n_g, fill=group_type)) +
+  geom_bar(stat="identity", position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+ labs(x="gender", y="% of vagrants", fill="vagrant type", title="Type of Middlesex Vagrants, by gender")
+
+
+#ggsave( "mv_type_gender.png", width = 6, height = 4, dpi = 100)
+ 
+```
+For single vagrants, the gender split is not far off 50/50, but slightly higher proportion are male. But again can see that a considerably higher proportion of women than men are in groups.
+
+```{r}
+
+ggplot(mv_gen_grp, aes(x=group_type, y=n_g, fill=GenderofLeadVagrant)) +
+  geom_bar(stat="identity", position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(fill="gender", y="% of vagrants", x="vagrant type", title="Gender of Middlesex Vagrants, by type")
+ 
+
+#ggsave("mv_gender_type.png", width = 6, height = 4, dpi = 100)
+```
+
+
+```{r}
+ggplot(mv_gen_ctry, aes(x=GenderofLeadVagrant, y=n_g, fill=SettlementCountry)
+) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(fill="settlement\ncountry", x="gender", y="% of vagrants", title="Gender and settlement country of Middlesex vagrants")
+
+
+#ggsave( "mv_gender_country.png", width = 6, height = 4, dpi = 100)
+  
+```
+
+```{r}
+ggplot(mv_gen_ctry, aes(fill=GenderofLeadVagrant, y=n_g, x=SettlementCountry)
+) +
+  geom_bar(stat = "identity", position = "fill") +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x="settlement country", fill="gender", y="% of vagrants")
+  
+```
+
+
+```{r}
+ggplot(mv_gen_ctry_grp, aes(x=group_type, y=n_gs, fill=SettlementCountry)
+) +
+  geom_bar(stat = "identity", position = "fill") +
+  facet_wrap(~GenderofLeadVagrant) +
+  scale_y_continuous(labels = percent_format())  +
+  labs(fill="settlement\ncountry", x="type", y="% of vagrants", title="Compare gender and country of vagrants by type")
+  
+
+#ggsave("mv_gender_country_type.png", width = 6, height = 4, dpi = 100)
+```
+
+```{r}
+ggplot(mv_gen_ctry_grp , aes(fill=group_type, y=n_gs, x=SettlementCountry)
+) +
+  geom_bar(stat = "identity", position = "fill") +
+  facet_wrap(~GenderofLeadVagrant) +
+  scale_y_continuous(labels = percent_format()) +
+  labs(x="settlement country", fill="group\ntype", y="% of vagrants")
+  
+```
+
+
+
+
+```{r}
+#png(filename = "mv_mosaic2.png", width = 1000, height = 600, res = 100)
+
+mv_df <- data.frame(mv_lead_mos)
+
+mv_mosaic <- mosaic(~ gender + country + type , mv_df, main="Mosaic plot of vagrants' gender/country/type", color = TRUE, shade=TRUE, labeling=labeling_border( rot_labels = c(40,90,0,90), gp_labels = gpar(fontsize = 11) ) )
+
+#dev.off()
+
+```
+
+
+
+
+
+```{r}
+kable(mv_gen_ctry_grp)
+```
+
