@@ -15,8 +15,6 @@ Some of the datasets are likely to be closely related to my research interests a
 Westminster Coroner's Inquests 1760-99
 ----------------
 
-I've started with this because it's data I recently created and this is my first chance to do something with it!
-
 [Data](data/wa_coroners_inquests_v1-1.tsv)
 
 NB that the data is fully described [here](https://github.com/sharonhoward/londonlives/tree/master/coroners_inquests)
@@ -69,7 +67,6 @@ Datasets:
 
 [R Notebook](womens_heights.Rmd)
 
-----
 
 Middlesex Vagrants
 --------------
